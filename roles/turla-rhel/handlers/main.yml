@@ -1,0 +1,21 @@
+# if the executable doesn't exist then we need to make it and build yara
+ - name: refresh
+   script: build-yara.sh
+   sudo: true
+   notify: sync rule
+
+# make sure that the turla block for yara is in place
+ - name: sync rule
+   synchronize: src=turla.yara dest=/root/yara-turla/positive/turla.yara checksum=yes copy_links=yes rsync_path="sudo rsync" 
+   sudo: true
+   notify: scan
+
+# scan the system
+ - name: scan
+# scan the positive folder to get a failed result
+#   command: /root/yara-turla/yara-3.1.0/yara /root/yara-turla/positive/turla.yara -r /root/yara-turla/positive
+# scan the negative folder to get an OK result
+   command: /root/yara-turla/yara-3.1.0/yara /root/yara-turla/positive/turla.yara -r /root/yara-turla/negative
+   sudo: true
+   register: scan_result
+   failed_when: "'possible_turla' in scan_result.stdout"

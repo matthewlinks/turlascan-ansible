@@ -1,0 +1,21 @@
+# Ansible playbook for trying to use Yara to scan for turla on RHEL / CentOS
+# install dependancies via yum
+ - name: install the 'Development Tools' package group
+   yum: name="@Development Tools" state=present
+   sudo: true
+
+# need file-devel for the libmagic package
+ - name: install required packages (using yum)
+   yum: name={{ item }} state=present
+   sudo: true
+   with_items:
+       - file-devel
+
+# we are going to work from /tmp for yara install and compile etc...
+ - name: Check if ~/yara-turla/yara-3.1.0/yara exists
+   stat: path=~/yara-turla/yara-3.1.0/yara
+   sudo: true
+   register: yara_exe
+   changed_when: not yara_exe.stat.exists
+   notify: 
+    - refresh
